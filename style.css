@@ -205,6 +205,57 @@ textarea { resize: vertical; }
 
 .ex-notes { font-size: 0.85rem; }
 
+.topbar-spacer { width: 2.4rem; }
+
+.start-workout-wrap { padding: 0.75rem 1rem 0; }
+.btn-large { padding: 1rem; font-size: 1.05rem; border-radius: var(--radius); }
+
+/* Reusable: big tappable option cards (workout type select, etc.) */
+.option-list { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.9rem 1rem; }
+.option-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.option-card:active { transform: scale(0.98); }
+.option-card .option-sub { display: block; font-weight: 400; font-size: 0.82rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+/* Reusable: checkbox grid (muscle group picker, suggested exercise list) */
+.checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; padding: 0 1rem; }
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.checkbox-item input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex-shrink: 0; }
+
+.suggested-list { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; }
+.suggested-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+}
+.suggested-item input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex-shrink: 0; }
+.suggested-item span { font-weight: 600; flex: 1; }
+
 @media (min-width: 640px) {
   #app { max-width: 560px; margin: 0 auto; }
 }

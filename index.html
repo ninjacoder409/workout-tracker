@@ -21,10 +21,43 @@
   <section id="view-list" class="view">
     <header class="topbar">
       <h1>Workouts</h1>
-      <button id="btn-new" class="btn btn-primary btn-round" aria-label="New workout">+</button>
+      <button id="btn-new" class="btn btn-primary btn-round" aria-label="Quick add workout">+</button>
     </header>
+    <div class="start-workout-wrap">
+      <button id="btn-start-workout" class="btn btn-primary btn-block btn-large">Start Workout</button>
+    </div>
     <div id="workout-list" class="list"></div>
-    <p id="empty-state" class="empty-state" hidden>No workouts yet. Tap + to log your first one.</p>
+    <p id="empty-state" class="empty-state" hidden>No workouts yet. Tap Start Workout to log your first one.</p>
+  </section>
+
+  <!-- WORKOUT TYPE SELECT VIEW -->
+  <section id="view-type-select" class="view" hidden>
+    <header class="topbar">
+      <button id="btn-back-type-select" class="btn btn-ghost">Back</button>
+      <h1>Workout Type</h1>
+      <span class="topbar-spacer"></span>
+    </header>
+    <div id="type-select-body" class="editor-body"></div>
+  </section>
+
+  <!-- BUILD NEW (MUSCLE GROUP PICKER) VIEW -->
+  <section id="view-build-new" class="view" hidden>
+    <header class="topbar">
+      <button id="btn-back-build-new" class="btn btn-ghost">Back</button>
+      <h1>Build New</h1>
+      <span class="topbar-spacer"></span>
+    </header>
+    <div id="build-new-body" class="editor-body"></div>
+  </section>
+
+  <!-- SUGGESTED WORKOUT VIEW -->
+  <section id="view-suggested" class="view" hidden>
+    <header class="topbar">
+      <button id="btn-back-suggested" class="btn btn-ghost">Back</button>
+      <h1 id="suggested-title">Suggested Workout</h1>
+      <span class="topbar-spacer"></span>
+    </header>
+    <div id="suggested-body" class="editor-body"></div>
   </section>
 
   <!-- EDITOR VIEW -->
@@ -118,6 +151,10 @@
   </div>
 </template>
 
+<script src="exercises-data.js"></script>
 <script src="app.js"></script>
+<script src="flow.js"></script>
+<script src="suggested.js"></script>
+<script src="integration.js"></script>
 </body>
 </html>

@@ -322,4 +322,24 @@
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
+
+  // Public hand-off point for the guided "Start Workout" flow (flow.js / suggested.js):
+  // opens a fresh New Workout editor pre-populated with the given exercise names,
+  // each with one empty set (or empty duration/distance for cardio) ready for reps/weight.
+  window.WT = window.WT || {};
+  window.WT.editor = {
+    openPrefilled(exerciseNames, label) {
+      openEditor(null);
+      wkName.value = label || '';
+      (exerciseNames || []).forEach(name => {
+        const known = window.WT.exercises && window.WT.exercises.typeOf(name);
+        addExerciseCard({
+          name,
+          type: known === 'cardio' ? 'cardio' : 'strength',
+          sets: known === 'cardio' ? [] : [{}],
+          notes: ''
+        });
+      });
+    }
+  };
 })();
