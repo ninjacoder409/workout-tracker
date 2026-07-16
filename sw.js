@@ -1,9 +1,13 @@
-const CACHE = 'wt-cache-v1';
+const CACHE = 'wt-cache-v2';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './exercises-data.js',
+  './flow.js',
+  './suggested.js',
+  './integration.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

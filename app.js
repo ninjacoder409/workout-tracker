@@ -140,13 +140,13 @@
     }
 
     refreshExerciseNamesDatalist();
-    viewList.hidden = true;
+    document.querySelectorAll('.view').forEach(v => { v.hidden = true; });
     viewEditor.hidden = false;
     window.scrollTo(0, 0);
   }
 
   function closeEditor() {
-    viewEditor.hidden = true;
+    document.querySelectorAll('.view').forEach(v => { v.hidden = true; });
     viewList.hidden = false;
     renderList();
   }
@@ -313,7 +313,7 @@
       addExerciseCard(clone);
     }
     refreshExerciseNamesDatalist();
-    viewList.hidden = true;
+    document.querySelectorAll('.view').forEach(v => { v.hidden = true; });
     viewEditor.hidden = false;
     window.scrollTo(0, 0);
   }
