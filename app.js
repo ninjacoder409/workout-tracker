@@ -100,9 +100,12 @@
   }
 
   function refreshExerciseNamesDatalist() {
-    const names = new Set();
-    for (const w of data.workouts) for (const ex of w.exercises) if (ex.name) names.add(ex.name);
-    exerciseNamesDatalist.innerHTML = [...names].sort().map(n => `<option value="${escapeHtml(n)}">`).join('');
+    const catalogNames = (window.WT && window.WT.exercises && window.WT.exercises.allNames()) || [];
+    const names = new Map();
+    for (const n of catalogNames) names.set(n.toLowerCase(), n);
+    for (const w of data.workouts) for (const ex of w.exercises) if (ex.name) names.set(ex.name.toLowerCase(), ex.name);
+    const sorted = [...names.values()].sort((a, b) => a.localeCompare(b));
+    exerciseNamesDatalist.innerHTML = sorted.map(n => `<option value="${escapeHtml(n)}">`).join('');
   }
 
   function lastUsedForExercise(name) {
@@ -216,8 +219,13 @@
     // prefill from history when a new exercise name is entered
     nameInput.addEventListener('change', () => {
       if (exData) return; // don't clobber existing data on edit
-      const prev = lastUsedForExercise(nameInput.value.trim());
-      if (!prev) return;
+      const name = nameInput.value.trim();
+      const prev = lastUsedForExercise(name);
+      if (!prev) {
+        const knownType = window.WT.exercises && window.WT.exercises.typeOf(name);
+        if (knownType) setType(knownType);
+        return;
+      }
       setType(prev.type);
       if (prev.type === 'strength' && !setsList.children.length) {
         prev.sets.forEach(s => addSetRow(s));
