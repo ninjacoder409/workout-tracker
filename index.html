@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Workout Tracker</title>
+<meta name="theme-color" content="#0b1120">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workouts">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- LIST VIEW -->
+  <section id="view-list" class="view">
+    <header class="topbar">
+      <h1>Workouts</h1>
+      <button id="btn-new" class="btn btn-primary btn-round" aria-label="New workout">+</button>
+    </header>
+    <div id="workout-list" class="list"></div>
+    <p id="empty-state" class="empty-state" hidden>No workouts yet. Tap + to log your first one.</p>
+  </section>
+
+  <!-- EDITOR VIEW -->
+  <section id="view-editor" class="view" hidden>
+    <header class="topbar">
+      <button id="btn-cancel" class="btn btn-ghost">Cancel</button>
+      <h1 id="editor-title">Workout</h1>
+      <button id="btn-save" class="btn btn-primary">Save</button>
+    </header>
+
+    <div class="editor-body">
+      <div class="field-row">
+        <label class="field">
+          <span>Date</span>
+          <input type="date" id="wk-date">
+        </label>
+        <label class="field">
+          <span>Label <small>(optional)</small></span>
+          <input type="text" id="wk-name" placeholder="Push Day">
+        </label>
+      </div>
+
+      <div id="exercise-list"></div>
+
+      <button id="btn-add-exercise" class="btn btn-secondary btn-block">+ Add Exercise</button>
+
+      <label class="field">
+        <span>Workout notes <small>(optional)</small></span>
+        <textarea id="wk-notes" rows="2" placeholder="How did it feel?"></textarea>
+      </label>
+
+      <button id="btn-delete-workout" class="btn btn-danger btn-block" hidden>Delete Workout</button>
+    </div>
+  </section>
+
+</div>
+
+<datalist id="exercise-names"></datalist>
+
+<template id="tpl-exercise">
+  <div class="exercise-card" data-id="">
+    <div class="exercise-head">
+      <input type="text" class="ex-name" list="exercise-names" placeholder="Exercise name">
+      <button class="btn btn-ghost btn-remove-ex" aria-label="Remove exercise">✕</button>
+    </div>
+    <div class="segmented ex-type">
+      <button type="button" class="seg-btn" data-type="strength">Strength</button>
+      <button type="button" class="seg-btn" data-type="cardio">Cardio</button>
+    </div>
+
+    <div class="strength-block">
+      <div class="sets-list"></div>
+      <div class="set-actions">
+        <button type="button" class="btn btn-secondary btn-small btn-add-set">+ Add Set</button>
+        <button type="button" class="btn btn-ghost btn-small btn-copy-set">Copy Last Set</button>
+      </div>
+    </div>
+
+    <div class="cardio-block" hidden>
+      <div class="field-row">
+        <label class="field">
+          <span>Duration <small>(min)</small></span>
+          <input type="number" class="ex-duration" min="0" step="0.5" inputmode="decimal" placeholder="30">
+        </label>
+        <label class="field">
+          <span>Distance <small>(optional)</small></span>
+          <input type="number" class="ex-distance" min="0" step="0.01" inputmode="decimal" placeholder="3.1">
+        </label>
+        <label class="field field-unit">
+          <span>Unit</span>
+          <select class="ex-dist-unit">
+            <option value="mi">mi</option>
+            <option value="km">km</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <input type="text" class="ex-notes" placeholder="Notes (optional)">
+  </div>
+</template>
+
+<template id="tpl-set-row">
+  <div class="set-row">
+    <span class="set-index"></span>
+    <input type="number" class="set-reps" min="0" inputmode="numeric" placeholder="reps">
+    <span class="set-x">×</span>
+    <input type="number" class="set-weight" min="0" step="0.5" inputmode="decimal" placeholder="weight">
+    <span class="set-unit"></span>
+    <button type="button" class="btn btn-ghost btn-remove-set" aria-label="Remove set">✕</button>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
