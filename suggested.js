@@ -36,7 +36,7 @@
       const list = document.createElement('div');
       list.className = 'suggested-list';
       (suggestedNames || []).forEach(name => {
-        list.appendChild(makeSuggestedItem(name, true));
+        list.appendChild(makeSuggestedItem(name, false));
       });
       body.appendChild(list);
 

@@ -101,6 +101,15 @@
     byMuscles(muscleKeys) {
       if (!muscleKeys || !muscleKeys.length) return [];
       return WT.EXERCISES.filter(e => e.muscles.some(m => muscleKeys.includes(m))).map(e => e.name);
+    },
+    // Restricts an arbitrary list of exercise names (e.g. recently-logged names) down to
+    // the ones that are in the catalog and match one of the given muscle keys.
+    filterNamesByMuscles(names, muscleKeys) {
+      if (!names || !names.length || !muscleKeys || !muscleKeys.length) return [];
+      const wanted = new Set(names.map(n => n.toLowerCase()));
+      return WT.EXERCISES
+        .filter(e => wanted.has(e.name.toLowerCase()) && e.muscles.some(m => muscleKeys.includes(m)))
+        .map(e => e.name);
     }
   };
 })();

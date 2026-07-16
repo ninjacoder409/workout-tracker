@@ -8,6 +8,22 @@
   const typeSelectBody = document.getElementById('type-select-body');
   const buildNewBody = document.getElementById('build-new-body');
 
+  // Exercises actually logged in the last 2 weeks that match the given muscle keys,
+  // surfaced ahead of the static catalog list so suggestions reflect recent training.
+  function withRecentFirst(catalogNames, muscleKeys) {
+    const recentNames = (window.WT.history && window.WT.history.recentExerciseNames()) || [];
+    const recentMatching = (window.WT.exercises && window.WT.exercises.filterNamesByMuscles)
+      ? window.WT.exercises.filterNamesByMuscles(recentNames, muscleKeys)
+      : [];
+    const seen = new Set();
+    const merged = [];
+    for (const n of [...recentMatching, ...catalogNames]) {
+      const key = n.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); merged.push(n); }
+    }
+    return merged;
+  }
+
   // ---------- WORKOUT TYPE SELECT ----------
   function renderTypeSelect() {
     typeSelectBody.innerHTML = `
@@ -29,7 +45,7 @@
       btn.addEventListener('click', () => {
         WT.suggested.open({
           label: cat.label,
-          suggestedNames: WT.exercises.byCategory(cat.key)
+          suggestedNames: withRecentFirst(WT.exercises.byCategory(cat.key), cat.muscles)
         });
       });
     });
@@ -69,7 +85,7 @@
 
       WT.suggested.open({
         label,
-        suggestedNames: WT.exercises.byMuscles(selectedKeys)
+        suggestedNames: withRecentFirst(WT.exercises.byMuscles(selectedKeys), selectedKeys)
       });
     });
   }

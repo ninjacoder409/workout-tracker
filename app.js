@@ -108,14 +108,26 @@
     exerciseNamesDatalist.innerHTML = sorted.map(n => `<option value="${escapeHtml(n)}">`).join('');
   }
 
-  function lastUsedForExercise(name) {
+  function lastUsedForExercise(name, maxAgeDays) {
     if (!name) return null;
+    const cutoff = maxAgeDays != null ? Date.now() - maxAgeDays * 86400000 : null;
     const sorted = [...data.workouts].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
     for (const w of sorted) {
+      if (cutoff != null && new Date(w.date).getTime() < cutoff) continue;
       const match = w.exercises.find(e => e.name.toLowerCase() === name.toLowerCase());
       if (match) return match;
     }
     return null;
+  }
+
+  function recentExerciseNames(maxAgeDays) {
+    const cutoff = Date.now() - maxAgeDays * 86400000;
+    const names = new Map();
+    for (const w of data.workouts) {
+      if (new Date(w.date).getTime() < cutoff) continue;
+      for (const ex of w.exercises) if (ex.name) names.set(ex.name.toLowerCase(), ex.name);
+    }
+    return [...names.values()];
   }
 
   // ---------- editor view ----------
@@ -335,11 +347,34 @@
   // opens a fresh New Workout editor pre-populated with the given exercise names,
   // each with one empty set (or empty duration/distance for cardio) ready for reps/weight.
   window.WT = window.WT || {};
+  const RECENT_DAYS = 14;
+
+  // Public: exercise names actually logged in the last RECENT_DAYS days, for the
+  // guided flow (flow.js) to surface alongside the static catalog suggestions.
+  window.WT.history = {
+    recentExerciseNames() {
+      return recentExerciseNames(RECENT_DAYS);
+    }
+  };
+
   window.WT.editor = {
     openPrefilled(exerciseNames, label) {
       openEditor(null);
       wkName.value = label || '';
       (exerciseNames || []).forEach(name => {
+        const recent = lastUsedForExercise(name, RECENT_DAYS);
+        if (recent) {
+          addExerciseCard({
+            name,
+            type: recent.type,
+            sets: recent.type === 'cardio' ? [] : (recent.sets && recent.sets.length ? recent.sets : [{}]),
+            duration: recent.duration ?? null,
+            distance: recent.distance ?? null,
+            distanceUnit: recent.distanceUnit || 'mi',
+            notes: ''
+          });
+          return;
+        }
         const known = window.WT.exercises && window.WT.exercises.typeOf(name);
         addExerciseCard({
           name,
