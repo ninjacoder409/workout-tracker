@@ -208,7 +208,10 @@ input:focus, textarea:focus, select:focus {
 
 textarea { resize: vertical; }
 
+#exercise-list { display: flex; flex-direction: column; gap: 0.85rem; }
+
 .exercise-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -217,10 +220,110 @@ textarea { resize: vertical; }
   flex-direction: column;
   gap: 0.7rem;
   box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, padding-left 0.15s ease;
+}
+
+.exercise-card.dragging {
+  z-index: 60;
+  box-shadow: 0 22px 44px -14px rgba(0, 0, 0, 0.4);
+  cursor: grabbing;
+}
+
+.exercise-card.superset-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), var(--shadow-card);
 }
 
 .exercise-head { display: flex; gap: 0.5rem; align-items: center; }
 .exercise-head .ex-name { flex: 1; font-weight: 700; min-height: 48px; }
+
+.drag-handle {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: grab;
+  touch-action: none;
+  border-radius: var(--radius-sm);
+  padding: 0;
+}
+.drag-handle:active { cursor: grabbing; background: var(--surface-2); }
+.drag-handle::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow:
+    0 -7px 0 currentColor, 0 7px 0 currentColor,
+    7px -7px 0 currentColor, 7px 0 0 currentColor, 7px 7px 0 currentColor,
+    0 0 0 currentColor;
+}
+
+.drop-indicator {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: -0.43rem 0;
+  box-shadow: var(--shadow-accent);
+}
+
+.superset-popup {
+  position: fixed;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  box-shadow: var(--shadow-accent);
+  pointer-events: none;
+  transform: translate(-50%, -140%);
+  white-space: nowrap;
+}
+
+.exercise-card.superset-linked { padding-left: 1.55rem; }
+.exercise-card.superset-linked::after {
+  content: '';
+  position: absolute;
+  left: 0.6rem;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  top: 0;
+  bottom: 0;
+}
+.exercise-card.superset-linked:not(.superset-first)::after { top: -0.85rem; }
+.exercise-card.superset-linked:not(.superset-last)::after { bottom: -0.85rem; }
+
+.superset-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.superset-unlink {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.4rem;
+}
 
 .segmented {
   display: flex;

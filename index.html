@@ -99,7 +99,12 @@
 
 <template id="tpl-exercise">
   <div class="exercise-card" data-id="">
+    <div class="superset-label" hidden>
+      <span>Superset</span>
+      <button type="button" class="superset-unlink">Unlink</button>
+    </div>
     <div class="exercise-head">
+      <button type="button" class="drag-handle" aria-label="Drag to reorder"></button>
       <input type="text" class="ex-name" list="exercise-names" placeholder="Exercise name">
       <button class="btn btn-ghost btn-remove-ex" aria-label="Remove exercise">✕</button>
     </div>

@@ -143,6 +143,7 @@
       wkNotes.value = w.notes || '';
       btnDeleteWorkout.hidden = false;
       for (const ex of w.exercises) addExerciseCard(ex);
+      renumberSupersetVisuals();
     } else {
       editorTitle.textContent = 'New Workout';
       wkDate.value = todayStr();
@@ -163,11 +164,155 @@
     renderList();
   }
 
+  // ---------- drag to reorder / drag onto another to combine into a superset ----------
+  let dragState = null;
+
+  const supersetPopup = document.createElement('div');
+  supersetPopup.className = 'superset-popup';
+  supersetPopup.textContent = '+ Superset';
+  supersetPopup.hidden = true;
+  document.body.appendChild(supersetPopup);
+
+  // Marks contiguous runs of cards sharing a supersetId as linked (for the connecting
+  // rail + label), and clears the id on any card that no longer has an adjacent partner.
+  function renumberSupersetVisuals() {
+    const cards = [...exerciseListEl.querySelectorAll('.exercise-card')];
+    cards.forEach((card, i) => {
+      const gid = card.dataset.supersetId;
+      const prev = cards[i - 1];
+      const next = cards[i + 1];
+      const hasPrev = Boolean(gid && prev && prev.dataset.supersetId === gid);
+      const hasNext = Boolean(gid && next && next.dataset.supersetId === gid);
+      const linked = Boolean(gid && (hasPrev || hasNext));
+      card.classList.toggle('superset-linked', linked);
+      card.classList.toggle('superset-first', linked && !hasPrev);
+      card.classList.toggle('superset-last', linked && !hasNext);
+      if (!linked) card.dataset.supersetId = '';
+      const label = card.querySelector('.superset-label');
+      if (label) label.hidden = !(linked && !hasPrev);
+    });
+  }
+
+  function startDrag(card, pointerId, clientY) {
+    const rect = card.getBoundingClientRect();
+    dragState = {
+      card,
+      pointerId,
+      offsetWithinCard: clientY - rect.top,
+      indicator: document.createElement('div'),
+      combineTarget: null,
+      insertBeforeCard: null
+    };
+    dragState.indicator.className = 'drop-indicator';
+    card.classList.add('dragging');
+    updateDragPosition(clientY);
+  }
+
+  function updateDragPosition(clientY) {
+    if (!dragState) return;
+    const { card } = dragState;
+    const others = [...exerciseListEl.querySelectorAll('.exercise-card')].filter(c => c !== card);
+
+    let combineTarget = null;
+    for (const other of others) {
+      const r = other.getBoundingClientRect();
+      const bandTop = r.top + r.height * 0.22;
+      const bandBottom = r.top + r.height * 0.78;
+      if (clientY >= bandTop && clientY <= bandBottom) { combineTarget = other; break; }
+    }
+
+    others.forEach(o => o.classList.remove('superset-target'));
+    if (dragState.indicator.parentNode) dragState.indicator.remove();
+
+    if (combineTarget) {
+      combineTarget.classList.add('superset-target');
+      const r = combineTarget.getBoundingClientRect();
+      supersetPopup.hidden = false;
+      supersetPopup.style.left = (r.left + r.width / 2) + 'px';
+      supersetPopup.style.top = r.top + 'px';
+      dragState.combineTarget = combineTarget;
+      dragState.insertBeforeCard = null;
+    } else {
+      supersetPopup.hidden = true;
+      dragState.combineTarget = null;
+      let insertBefore = null;
+      for (const other of others) {
+        const r = other.getBoundingClientRect();
+        const mid = r.top + r.height / 2;
+        if (clientY < mid) { insertBefore = other; break; }
+      }
+      dragState.insertBeforeCard = insertBefore;
+      if (insertBefore) {
+        exerciseListEl.insertBefore(dragState.indicator, insertBefore);
+      } else {
+        exerciseListEl.appendChild(dragState.indicator);
+      }
+    }
+
+    card.style.transform = 'none';
+    const naturalTop = card.getBoundingClientRect().top;
+    const dy = clientY - dragState.offsetWithinCard - naturalTop;
+    card.style.transform = `translateY(${dy}px)`;
+  }
+
+  function endDrag() {
+    if (!dragState) return;
+    const { card, combineTarget, insertBeforeCard, indicator } = dragState;
+    card.classList.remove('dragging');
+    card.style.transform = '';
+    exerciseListEl.querySelectorAll('.superset-target').forEach(c => c.classList.remove('superset-target'));
+    if (indicator.parentNode) indicator.remove();
+    supersetPopup.hidden = true;
+
+    if (combineTarget) {
+      const gid = combineTarget.dataset.supersetId || uid();
+      combineTarget.dataset.supersetId = gid;
+      card.dataset.supersetId = gid;
+      combineTarget.insertAdjacentElement('afterend', card);
+    } else if (insertBeforeCard) {
+      exerciseListEl.insertBefore(card, insertBeforeCard);
+    } else {
+      exerciseListEl.appendChild(card);
+    }
+
+    dragState = null;
+    renumberSupersetVisuals();
+  }
+
+  exerciseListEl.addEventListener('pointerdown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    const card = handle.closest('.exercise-card');
+    if (!card) return;
+    e.preventDefault();
+    try { handle.setPointerCapture(e.pointerId); } catch (err) { /* not fatal; move/up still bubble while pointer is over the list */ }
+    startDrag(card, e.pointerId, e.clientY);
+  });
+
+  // Listen on document (not just the list) so the drag keeps tracking even if a fast
+  // swipe momentarily carries the pointer outside the list's bounds.
+  document.addEventListener('pointermove', (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    e.preventDefault();
+    updateDragPosition(e.clientY);
+  });
+
+  document.addEventListener('pointerup', (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    endDrag();
+  });
+
+  document.addEventListener('pointercancel', (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    endDrag();
+  });
+
   function addExerciseCard(exData) {
     const frag = tplExercise.content.cloneNode(true);
     const card = frag.querySelector('.exercise-card');
     const id = exData?.id || uid();
     card.dataset.id = id;
+    card.dataset.supersetId = exData?.supersetId || '';
 
     const nameInput = card.querySelector('.ex-name');
     const notesInput = card.querySelector('.ex-notes');
@@ -195,7 +340,19 @@
     setType(type);
     segBtns.forEach(b => b.addEventListener('click', () => setType(b.dataset.type)));
 
-    card.querySelector('.btn-remove-ex').addEventListener('click', () => card.remove());
+    card.querySelector('.btn-remove-ex').addEventListener('click', () => {
+      card.remove();
+      renumberSupersetVisuals();
+    });
+
+    card.querySelector('.superset-unlink').addEventListener('click', () => {
+      const gid = card.dataset.supersetId;
+      if (!gid) return;
+      exerciseListEl.querySelectorAll('.exercise-card').forEach(c => {
+        if (c.dataset.supersetId === gid) c.dataset.supersetId = '';
+      });
+      renumberSupersetVisuals();
+    });
 
     function addSetRow(setData) {
       const setFrag = tplSetRow.content.cloneNode(true);
@@ -256,9 +413,16 @@
 
     exerciseListEl.appendChild(frag);
     if (!exData) nameInput.focus();
+    // note: callers that add multiple cards in a loop (openEditor, repeatWorkout,
+    // WT.editor.openPrefilled) must call renumberSupersetVisuals() once after the
+    // whole batch — calling it per-card here would clear a group's first card's
+    // supersetId before its sibling exists yet.
   }
 
-  document.getElementById('btn-add-exercise').addEventListener('click', () => addExerciseCard());
+  document.getElementById('btn-add-exercise').addEventListener('click', () => {
+    addExerciseCard();
+    renumberSupersetVisuals();
+  });
 
   function collectExercisesFromDom() {
     const exercises = [];
@@ -266,19 +430,20 @@
       const name = card.querySelector('.ex-name').value.trim();
       const type = card.dataset.type;
       const notes = card.querySelector('.ex-notes').value.trim();
+      const supersetId = card.dataset.supersetId || null;
       if (!name) return; // skip blank rows
 
       if (type === 'cardio') {
         const duration = parseFloat(card.querySelector('.ex-duration').value) || null;
         const distance = parseFloat(card.querySelector('.ex-distance').value) || null;
         const distanceUnit = card.querySelector('.ex-dist-unit').value;
-        exercises.push({ id: card.dataset.id, name, type, duration, distance, distanceUnit, notes });
+        exercises.push({ id: card.dataset.id, name, type, duration, distance, distanceUnit, notes, supersetId });
       } else {
         const sets = [...card.querySelectorAll('.set-row')].map(row => ({
           reps: parseFloat(row.querySelector('.set-reps').value) || null,
           weight: parseFloat(row.querySelector('.set-weight').value) || null
         })).filter(s => s.reps !== null || s.weight !== null);
-        exercises.push({ id: card.dataset.id, name, type, sets, notes });
+        exercises.push({ id: card.dataset.id, name, type, sets, notes, supersetId });
       }
     });
     return exercises;
@@ -324,6 +489,7 @@
       clone.id = uid();
       addExerciseCard(clone);
     }
+    renumberSupersetVisuals();
     refreshExerciseNamesDatalist();
     document.querySelectorAll('.view').forEach(v => { v.hidden = true; });
     viewEditor.hidden = false;
@@ -383,6 +549,7 @@
           notes: ''
         });
       });
+      renumberSupersetVisuals();
     }
   };
 })();
